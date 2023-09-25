@@ -71,13 +71,14 @@ function interpret(L, context)
     end
 end
 
-if #arg > 0 then
-    input = arg[1]
-else
-    input = "./var/rinha/source.rinha.json"
-end
+input = arg[1] or "/var/rinha/source.rinha.json"
 
 file = io.open(input, "r")
+if file == nil then
+    print("Não foi possível ler \"" .. input .. "\"")
+    os.exit()
+end
+
 content = file:read "*a"
 
 for k, v in pairs(json.decode(content)) do
