@@ -10,8 +10,16 @@ function interpret(L, context)
 
     if command == "Print" then
         local termo = interpret(L["value"], variables)
-        print(tostring(termo))
-        return
+        if type(termo) == "table" then
+            if termo["kind"] ~= nil then
+                print("<#closure>")
+            else
+                print("(" .. tostring(termo[1]) .. ", " .. tostring(termo[2]) .. ")")
+            end
+        else
+            print(tostring(termo))
+        end
+        return termo
     elseif command == "Let" then
         local value = interpret(L["value"], variables)
         variables[L["name"]["text"]] = value
@@ -53,20 +61,51 @@ function interpret(L, context)
         
         if operator == "Eq" then
             return lhs == rhs
+        elseif operator == "Neq" then
+            return lhs ~= rhs
         elseif operator == "Add" then
-            return lhs + rhs
+            if type(lhs) == "string" or type(rhs) == "string" then
+                return lhs .. rhs
+            else
+                return lhs + rhs
+            end
         elseif operator == "Sub" then
             return lhs - rhs
         elseif operator == "Or" then
             return lhs or rhs
+        elseif operator == "And" then
+            return lhs and rhs
         elseif operator == "Lt" then
             return lhs < rhs
+        elseif operator == "Lte" then
+            return lhs <= rhs
+        elseif operator == "Gt" then
+            return lhs > rhs
+        elseif operator == "Gte" then
+            return lhs >= rhs
+        elseif operator == "Mul" then
+            return lhs * rhs
+        elseif operator == "Div" then
+            if rhs == 0 then
+                print("Divisão por zero :(")
+                os.exit()
+            end
+            
+            return math.floor(lhs / rhs)
+        elseif operator == "Rem" then
+            return lhs % rhs
         else
-            print("Unknown operator: " .. operator)
+            print("Operador desconhecido: " .. operator)
             os.exit()
         end
+    elseif command == "Tuple" then
+        return { interpret(L["first"], variables), interpret(L["second"], variables) }
+    elseif command == "First" then
+        return interpret(L["value"], variables)[1]
+    elseif command == "Second" then
+        return interpret(L["value"], variables)[2]
     elseif command ~= nil then
-        print("Unknown command: " .. command)
+        print("Comando desconhecido: " .. command)
         os.exit()
     end
 end
